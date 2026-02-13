@@ -4,8 +4,10 @@ apply plugin: 'signing'
 nexusPublishing {
     repositories {
         sonatype {
-            nexusUrl.set(uri("$sonatypeURL/service/local/"))
-            snapshotRepositoryUrl.set(uri("$sonatypeURL/content/repositories/snapshots/"))
+            nexusUrl.set(uri("https://ossrh-staging-api.central.sonatype.com/service/local/"))
+            snapshotRepositoryUrl.set(uri("https://central.sonatype.com/repository/maven-snapshots/"))
+            username.set(providers.gradleProperty("sonatypeUsername"))
+            password.set(providers.gradleProperty("sonatypePassword"))
         }
     }
 }
@@ -22,13 +24,13 @@ publishing {
                 def root = asNode()
                 root.appendNode('name', 'Jenkins Rest')
                 root.appendNode('description', 'Java client for working with Jenkins REST API.')
-                root.appendNode('url', 'https://github.com/cdancy/jenkins-rest')
+                root.appendNode('url', 'https://github.com/pdasilem/jenkins-rest')
                 root.appendNode('inceptionYear', '2016')
 
                 def scm = root.appendNode('scm')
-                scm.appendNode('url', 'https://github.com/cdancy/jenkins-rest')
-                scm.appendNode('connection', 'scm:https://cdancy@github.com/cdancy/jenkins-rest.git')
-                scm.appendNode('developerConnection', 'scm:git://github.com/cdancy/jenkins-rest.git')
+                scm.appendNode('url', 'https://github.com/pdasilem/jenkins-rest')
+                scm.appendNode('connection', 'scm:https://pdasilem@github.com/pdasilem/jenkins-rest.git')
+                scm.appendNode('developerConnection', 'scm:git://github.com/pdasilem/jenkins-rest.git')
 
                 def license = root.appendNode('licenses').appendNode('license')
                 license.appendNode('name', 'The Apache Software License, Version 2.0')
@@ -36,14 +38,10 @@ publishing {
                 license.appendNode('distribution', 'repo')
 
                 def developers = root.appendNode('developers')
-                def cdancy = developers.appendNode('developer')
-                cdancy.appendNode('id', 'cdancy')
-                cdancy.appendNode('name', 'Christopher Dancy')
-                cdancy.appendNode('email', 'christoforever@gmail.com')
-                def martinda = developers.appendNode('developer')
-                martinda.appendNode('id', 'martinda')
-                martinda.appendNode('name', "Martin d'Anjou")
-                martinda.appendNode('email', 'martin.danjou14@gmail.com')
+                def pdasilem = developers.appendNode('developer')
+                pdasilem.appendNode('id', 'pdasilem')
+                pdasilem.appendNode('name', 'Sergei M')
+                pdasilem.appendNode('email', 'pdasilem@gmail.com')
             }
         }
     }

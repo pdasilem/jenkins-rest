@@ -1,66 +1,95 @@
-
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.github.cdancy/jenkins-rest/badge.png)](https://maven-badges.herokuapp.com/maven-central/io.github.cdancy/jenkins-rest)
-[![Stack Overflow](https://img.shields.io/badge/stack%20overflow-jenkins&#8211;rest-4183C4.svg)](https://stackoverflow.com/questions/tagged/jenkins+rest)
-
 # jenkins-rest
 
-Java client is built on the top of jclouds for working with Jenkins REST API.
+Java client for working with Jenkins REST API, built on `java.net.http.HttpClient` (JDK 21+).
+
+## Acknowledgment
+
+This project is a fork of [cdancy/jenkins-rest](https://github.com/cdancy/jenkins-rest) v1.0.2
+by [Christopher Dancy](https://github.com/cdancy), licensed under the
+[Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0).
+
+Changes from the original version (2.0.0):
+- Migrated from JDK 11 to JDK 21
+- Replaced jclouds HTTP layer with `java.net.http.HttpClient`
+- Replaced AutoValue domain classes with Java Records
+- Removed Guice, Guava, javax.ws.rs, javax.inject dependencies
+- Changed package namespace from `com.cdancy` to `com.pdasilem`
 
 ## Setup
 
 Client's can be built like so:
-```
+```java
+// Using username:password authentication
 JenkinsClient client = JenkinsClient.builder()
-.endPoint("http://127.0.0.1:8080") // Optional. Defaults to http://127.0.0.1:8080
-.credentials("admin:password") // Optional.
-.build();
+    .endPoint("http://127.0.0.1:8080") // Optional. Defaults to http://127.0.0.1:7990
+    .credentials("admin:password")
+    .build();
+
+// Or using API token authentication (recommended)
+JenkinsClient client = JenkinsClient.builder()
+    .endPoint("http://127.0.0.1:8080")
+    .apiToken("admin:your-api-token")
+    .build();
 
 SystemInfo systemInfo = client.api().systemApi().systemInfo();
-assertTrue(systemInfo.jenkinsVersion().equals("1.642.4"));
+System.out.println(systemInfo.jenkinsVersion());
 ```
-      
+
 ## Latest release
 
 Can be found in maven like so:
-```
+```xml
 <dependency>
-  <groupId>io.github.cdancy</groupId>
+  <groupId>io.github.pdasilem</groupId>
   <artifactId>jenkins-rest</artifactId>
-  <version>X.Y.Z</version>
-  <classifier>sources|tests|javadoc|all</classifier> (Optional)
+  <version>2.0.0</version>
 </dependency>
 ```
 
-## Documentation
-
-* javadocs can be found via [github pages here](http://cdancy.github.io/jenkins-rest/docs/javadoc/)
-* the [jenkins-rest wiki](https://github.com/cdancy/jenkins-rest/wiki)
-
 ## Property based setup
 
-Client instances do NOT need to supply the endPoint or credentials as a part of instantiating the JenkinsClient object. 
-Instead one can supply them through system properties, environment variables, or a combination 
-of the two. System properties will be searched first and if not found, will attempt to 
-query the environment.
+You can create a client without passing `endPoint` or `credentials` explicitly.
+In this case the library will try to resolve them from **system properties** first, then from **environment variables**.
 
-Setting the `endpoint` can be done with any of the following (searched in order):
+This is useful when you don't want to hardcode connection details in your code — for example, in CI/CD pipelines or Docker containers.
 
-- `jenkins.rest.endpoint`
-- `jenkinsRestEndpoint`
-- `JENKINS_REST_ENDPOINT`
+**Endpoint** (searched in order):
 
-When none is found, the endpoint is set to `http://localhost:8080`.
+| Source | Key |
+|---|---|
+| System property | `jenkins.rest.endpoint` |
+| Environment variable | `JENKINS_REST_ENDPOINT` |
 
-Setting the `credentials` can be done with any of the following (searched in order):
+Default (if none found): `http://127.0.0.1:7990`
 
-- `jenkins.rest.api.token`
-- `jenkinsRestApiToken`
-- `JENKINS_REST_API_TOKEN`
-- `jenkins.rest.credentials`
-- `jenkinsRestCredentials`
-- `JENKINS_REST_CREDENTIALS`
+**Authentication** (searched in order):
 
-When none is found, no authentication is used (anonymous).
+| Source | Key | Auth type |
+|---|---|---|
+| System property | `jenkins.rest.api.token` | API token |
+| Environment variable | `JENKINS_REST_API_TOKEN` | API token |
+| System property | `jenkins.rest.credentials` | username:password |
+| Environment variable | `JENKINS_REST_CREDENTIALS` | username:password |
+
+If none found, anonymous access is used.
+
+**Example:**
+```bash
+# Via environment variables
+export JENKINS_REST_ENDPOINT=http://my-jenkins:8080
+export JENKINS_REST_API_TOKEN=admin:your-api-token
+
+# Via JVM system properties
+java -Djenkins.rest.endpoint=http://my-jenkins:8080 \
+     -Djenkins.rest.api.token=admin:your-api-token \
+     -jar my-app.jar
+```
+
+Then in code — no configuration needed:
+```java
+JenkinsClient client = JenkinsClient.builder().build();
+// endpoint and credentials are resolved automatically
+```
 
 ## Credentials
 
@@ -76,32 +105,30 @@ jenkins-rest credentials can take 1 of 3 forms:
 
 The Jenkins crumb is automatically requested when POSTing using the anonymous and the username:password authentication methods.
 It is not requested when you use the apiToken as it is not needed in this case.
-For more details, see
-
-* [CSRF Protection on jenkins.io](https://www.jenkins.io/doc/book/security/csrf-protection/)
-* [Cloudbees crumb documentation](https://support.cloudbees.com/hc/en-us/articles/219257077-CSRF-Protection-Explained).
+For more details, see [CSRF Protection on jenkins.io](https://www.jenkins.io/doc/book/security/csrf-protection/).
 
 ## Examples
 
-The [mock](https://github.com/cdancy/jenkins-rest/tree/master/src/test/java/com/cdancy/jenkins/rest/features) and [live](https://github.com/cdancy/jenkins-rest/tree/master/src/test/java/com/cdancy/jenkins/rest/features) tests provide many examples
+The [mock](src/test/java/com/pdasilem/jenkins/rest/features) and [live](src/test/java/com/pdasilem/jenkins/rest/features) tests provide many examples
 that you can use in your own code.
 
 ## Components
 
-- jclouds \- used as the backend for communicating with Jenkins REST API
-- AutoValue \- used to create immutable value types both to and from the jenkins program
-    
+- **java.net.http.HttpClient** (JDK 21) — HTTP layer
+- **Gson** — JSON serialization/deserialization
+- **Java Records** — immutable domain classes
+
 ## Testing
 
 Running mock tests can be done like so:
 
 	./gradlew clean build mockTest
-	
+
 Running integration tests require an existing jenkins instance which can be obtained with docker:
 
-        docker build -t jenkins-rest/jenkins src/main/docker
-        docker run -d --rm -p 8080:8080 --name jenkins-rest jenkins-rest/jenkins
-	./gradlew clean build integTest 
+	docker build -t jenkins-rest/jenkins src/main/docker
+	docker run -d --rm -p 8080:8080 --name jenkins-rest jenkins-rest/jenkins
+	./gradlew clean build integTest
 
 ### Integration tests settings
 
@@ -114,10 +141,9 @@ If you wish to run integration tests against your own Jenkins server, the requir
 - Jenkins security
   - Authorization: Anyone can do anything (to be able to test the crumb with the anonymous account)
   - an `admin` user (credentials used by the tests can be changed in the gradle.properties file) with `ADMIN` role (required as the tests install plugins)
-  - [CSRF protection enabled](https://wiki.jenkins.io/display/JENKINS/CSRF+Protection). Not mandatory but [recommended by the Jenkins documentation](https://jenkins.io/doc/book/system-administration/security/#protect-users-of-jenkins-from-other-threats). The lib supports Jenkins instances with our without this protection (see #14)
+  - [CSRF protection enabled](https://www.jenkins.io/doc/book/security/csrf-protection/). Not mandatory but recommended by the Jenkins documentation. The lib supports Jenkins instances with or without this protection.
 - Plugins
-  - [CloudBees Credentials](https://plugins.jenkins.io/cloudbees-credentials): otherwise an http 500 error occurs when accessing
-to http://127.0.0.1:8080/job/test-folder/job/test-folder-1/ `java.lang.NoClassDefFoundError: com/cloudbees/hudson/plugins/folder/properties/FolderCredentialsProvider`
+  - [CloudBees Credentials](https://plugins.jenkins.io/cloudbees-credentials)
   - [CloudBees Folder](https://plugins.jenkins.io/cloudbees-folder) plugin installed
   - [OWASP Markup Formatter](https://plugins.jenkins.io/antisamy-markup-formatter) configured to use `Safe HTML`
   - [Configuration As Code](https://plugins.jenkins.io/configuration-as-code) plugin installed
@@ -135,9 +161,7 @@ This project provides instructions to setup a [pre-configured Docker container](
 - the `integTest` gradle task sets various System Properties
 - if you don't want to use gradle as tests runner in your IDE, configure the tests with the same kind of System Properties
 
-
 # Additional Resources
 
-* [Jenkins REST API](http://wiki.jenkins-ci.org/display/JENKINS/Remote+access+API)
-* [Apache jclouds](https://jclouds.apache.org/start/)
+* [Jenkins REST API](https://www.jenkins.io/doc/book/using/remote-access-api/)
 
