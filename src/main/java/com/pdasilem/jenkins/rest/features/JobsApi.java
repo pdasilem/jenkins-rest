@@ -31,6 +31,7 @@ import com.pdasilem.jenkins.rest.domain.job.PipelineNode;
 import com.pdasilem.jenkins.rest.domain.job.PipelineNodeLog;
 import com.pdasilem.jenkins.rest.domain.job.ProgressiveText;
 import com.pdasilem.jenkins.rest.domain.job.Workflow;
+import com.pdasilem.jenkins.rest.exception.JenkinsApiException;
 
 import java.io.InputStream;
 import java.net.http.HttpResponse;
@@ -46,36 +47,20 @@ public class JobsApi {
     }
 
     public JobList jobList(final String folderPath) {
-        try {
-            return client.get("/" + FolderPathHelper.encode(folderPath) + "api/json", JobList.class);
-        } catch (Exception e) {
-            return null;
-        }
+        return client.get("/" + FolderPathHelper.encode(folderPath) + "api/json", JobList.class);
     }
 
     public JobInfo jobInfo(final String optionalFolderPath, final String jobName) {
-        try {
-            return client.get("/" + FolderPathHelper.encode(optionalFolderPath) + "job/" + jobName + "/api/json", JobInfo.class);
-        } catch (Exception e) {
-            return null;
-        }
+        return client.get("/" + FolderPathHelper.encode(optionalFolderPath) + "job/" + jobName + "/api/json", JobInfo.class);
     }
 
     public BuildInfo buildInfo(final String optionalFolderPath, final String jobName, final int buildNumber) {
-        try {
-            return client.get("/" + FolderPathHelper.encode(optionalFolderPath) + "job/" + jobName + "/" + buildNumber + "/api/json", BuildInfo.class);
-        } catch (Exception e) {
-            return null;
-        }
+        return client.get("/" + FolderPathHelper.encode(optionalFolderPath) + "job/" + jobName + "/" + buildNumber + "/api/json", BuildInfo.class);
     }
 
     public InputStream artifact(final String optionalFolderPath, final String jobName, final int buildNumber, final String relativeArtifactPath) {
-        try {
-            final HttpResponse<InputStream> resp = client.getStream("/" + FolderPathHelper.encode(optionalFolderPath) + "job/" + jobName + "/" + buildNumber + "/artifact/" + relativeArtifactPath);
-            return resp.body();
-        } catch (Exception e) {
-            return null;
-        }
+        final HttpResponse<InputStream> resp = client.getStream("/" + FolderPathHelper.encode(optionalFolderPath) + "job/" + jobName + "/" + buildNumber + "/artifact/" + relativeArtifactPath);
+        return resp.body();
     }
 
     public RequestStatus create(final String optionalFolderPath, final String jobName, final String configXML) {
@@ -88,38 +73,26 @@ public class JobsApi {
     }
 
     public String config(final String optionalFolderPath, final String jobName) {
-        try {
-            return client.getString("/" + FolderPathHelper.encode(optionalFolderPath) + "job/" + jobName + "/config.xml");
-        } catch (Exception e) {
-            return null;
-        }
+        return client.getString("/" + FolderPathHelper.encode(optionalFolderPath) + "job/" + jobName + "/config.xml");
     }
 
     public boolean config(final String optionalFolderPath, final String jobName, final String configXML) {
-        try {
-            client.postString("/" + FolderPathHelper.encode(optionalFolderPath) + "job/" + jobName + "/config.xml", configXML, "application/xml;charset=UTF-8");
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
+        client.postString("/" + FolderPathHelper.encode(optionalFolderPath) + "job/" + jobName + "/config.xml", configXML, "application/xml;charset=UTF-8");
+        return true;
     }
 
     public String description(final String optionalFolderPath, final String jobName) {
-        try {
-            return client.getString("/" + FolderPathHelper.encode(optionalFolderPath) + "job/" + jobName + "/description");
-        } catch (Exception e) {
-            return null;
-        }
+        return client.getString("/" + FolderPathHelper.encode(optionalFolderPath) + "job/" + jobName + "/description");
     }
 
     public boolean description(final String optionalFolderPath, final String jobName, final String description) {
-        try {
-            var resp = client.postFormWithResponse("/" + FolderPathHelper.encode(optionalFolderPath) + "job/" + jobName + "/description",
-                    Map.of("description", List.of(description)));
-            return resp.statusCode() < 400;
-        } catch (Exception e) {
-            return false;
+        var resp = client.postFormWithResponse("/" + FolderPathHelper.encode(optionalFolderPath) + "job/" + jobName + "/description",
+                Map.of("description", List.of(description)));
+        if (resp.statusCode() >= 400) {
+            throw new JenkinsApiException("Failed to set description: HTTP " + resp.statusCode(),
+                    resp.statusCode(), resp.body(), "POST", resp.uri().toString());
         }
+        return true;
     }
 
     public RequestStatus delete(final String optionalFolderPath, final String jobName) {
@@ -132,21 +105,13 @@ public class JobsApi {
     }
 
     public boolean enable(final String optionalFolderPath, final String jobName) {
-        try {
-            client.postRaw("/" + FolderPathHelper.encode(optionalFolderPath) + "job/" + jobName + "/enable");
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
+        client.postRaw("/" + FolderPathHelper.encode(optionalFolderPath) + "job/" + jobName + "/enable");
+        return true;
     }
 
     public boolean disable(final String optionalFolderPath, final String jobName) {
-        try {
-            client.postRaw("/" + FolderPathHelper.encode(optionalFolderPath) + "job/" + jobName + "/disable");
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
+        client.postRaw("/" + FolderPathHelper.encode(optionalFolderPath) + "job/" + jobName + "/disable");
+        return true;
     }
 
     public LongResponse build(final String optionalFolderPath, final String jobName) {
@@ -203,90 +168,56 @@ public class JobsApi {
     }
 
     public Integer lastBuildNumber(final String optionalFolderPath, final String jobName) {
-        try {
-            final String body = client.getString("/" + FolderPathHelper.encode(optionalFolderPath) + "job/" + jobName + "/lastBuild/buildNumber");
-            return body != null ? Integer.parseInt(body.trim()) : null;
-        } catch (Exception e) {
-            return null;
-        }
+        final String body = client.getString("/" + FolderPathHelper.encode(optionalFolderPath) + "job/" + jobName + "/lastBuild/buildNumber");
+        return body != null ? Integer.parseInt(body.trim()) : null;
     }
 
     public String lastBuildTimestamp(final String optionalFolderPath, final String jobName) {
-        try {
-            return client.getString("/" + FolderPathHelper.encode(optionalFolderPath) + "job/" + jobName + "/lastBuild/buildTimestamp");
-        } catch (Exception e) {
-            return null;
-        }
+        return client.getString("/" + FolderPathHelper.encode(optionalFolderPath) + "job/" + jobName + "/lastBuild/buildTimestamp");
     }
 
     public ProgressiveText progressiveText(final String optionalFolderPath, final String jobName, final int start) {
-        try {
-            final HttpResponse<String> resp = client.getWithResponse("/" + FolderPathHelper.encode(optionalFolderPath) + "job/" + jobName + "/lastBuild/logText/progressiveText?start=" + start);
-            if (resp.statusCode() == 404) return null;
-            return parseProgressiveText(resp);
-        } catch (Exception e) {
-            return null;
+        final HttpResponse<String> resp = client.getWithResponse("/" + FolderPathHelper.encode(optionalFolderPath) + "job/" + jobName + "/lastBuild/logText/progressiveText?start=" + start);
+        if (resp.statusCode() >= 400) {
+            throw new JenkinsApiException("Failed to get progressive text: HTTP " + resp.statusCode(),
+                    resp.statusCode(), resp.body(), "GET", resp.uri().toString());
         }
+        return parseProgressiveText(resp);
     }
 
     public ProgressiveText progressiveText(final String optionalFolderPath, final String jobName, final int buildNumber, final int start) {
-        try {
-            final HttpResponse<String> resp = client.getWithResponse("/" + FolderPathHelper.encode(optionalFolderPath) + "job/" + jobName + "/" + buildNumber + "/logText/progressiveText?start=" + start);
-            if (resp.statusCode() == 404) return null;
-            return parseProgressiveText(resp);
-        } catch (Exception e) {
-            return null;
+        final HttpResponse<String> resp = client.getWithResponse("/" + FolderPathHelper.encode(optionalFolderPath) + "job/" + jobName + "/" + buildNumber + "/logText/progressiveText?start=" + start);
+        if (resp.statusCode() >= 400) {
+            throw new JenkinsApiException("Failed to get progressive text: HTTP " + resp.statusCode(),
+                    resp.statusCode(), resp.body(), "GET", resp.uri().toString());
         }
+        return parseProgressiveText(resp);
     }
 
     public boolean rename(final String optionalFolderPath, final String jobName, final String newName) {
-        try {
-            client.postRaw("/" + FolderPathHelper.encode(optionalFolderPath) + "job/" + jobName + "/doRename?newName=" + newName);
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
+        client.postRaw("/" + FolderPathHelper.encode(optionalFolderPath) + "job/" + jobName + "/doRename?newName=" + newName);
+        return true;
     }
 
     public List<Workflow> runHistory(final String optionalFolderPath, final String jobName) {
-        try {
-            return client.get("/" + FolderPathHelper.encode(optionalFolderPath) + "job/" + jobName + "/wfapi/runs",
-                    new TypeToken<List<Workflow>>() {}.getType());
-        } catch (Exception e) {
-            return null;
-        }
+        return client.get("/" + FolderPathHelper.encode(optionalFolderPath) + "job/" + jobName + "/wfapi/runs",
+                new TypeToken<List<Workflow>>() {}.getType());
     }
 
     public Workflow workflow(final String optionalFolderPath, final String jobName, final int buildNumber) {
-        try {
-            return client.get("/" + FolderPathHelper.encode(optionalFolderPath) + "job/" + jobName + "/" + buildNumber + "/wfapi/describe", Workflow.class);
-        } catch (Exception e) {
-            return null;
-        }
+        return client.get("/" + FolderPathHelper.encode(optionalFolderPath) + "job/" + jobName + "/" + buildNumber + "/wfapi/describe", Workflow.class);
     }
 
     public PipelineNode pipelineNode(final String optionalFolderPath, final String jobName, final int buildNumber, final int nodeId) {
-        try {
-            return client.get("/" + FolderPathHelper.encode(optionalFolderPath) + "job/" + jobName + "/" + buildNumber + "/execution/node/" + nodeId + "/wfapi/describe", PipelineNode.class);
-        } catch (Exception e) {
-            return null;
-        }
+        return client.get("/" + FolderPathHelper.encode(optionalFolderPath) + "job/" + jobName + "/" + buildNumber + "/execution/node/" + nodeId + "/wfapi/describe", PipelineNode.class);
     }
 
     public PipelineNodeLog pipelineNodeLog(final String optionalFolderPath, final String jobName, final int buildNumber, final int nodeId) {
-        try {
-            return client.get("/" + FolderPathHelper.encode(optionalFolderPath) + "job/" + jobName + "/" + buildNumber + "/execution/node/" + nodeId + "/wfapi/log", PipelineNodeLog.class);
-        } catch (Exception e) {
-            return null;
-        }
+        return client.get("/" + FolderPathHelper.encode(optionalFolderPath) + "job/" + jobName + "/" + buildNumber + "/execution/node/" + nodeId + "/wfapi/log", PipelineNodeLog.class);
     }
 
     public JsonObject testReport(final String optionalFolderPath, final String jobName, final int buildNumber) {
-        try {
-            return client.get("/" + FolderPathHelper.encode(optionalFolderPath) + "job/" + jobName + "/" + buildNumber + "/testReport/api/json", JsonObject.class);
-        } catch (Exception e) {
-            return null;
-        }
+        return client.get("/" + FolderPathHelper.encode(optionalFolderPath) + "job/" + jobName + "/" + buildNumber + "/testReport/api/json", JsonObject.class);
     }
 
     private LongResponse parseQueueId(final HttpResponse<String> resp) {

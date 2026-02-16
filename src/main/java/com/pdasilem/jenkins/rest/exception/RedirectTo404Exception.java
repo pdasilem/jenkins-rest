@@ -23,12 +23,12 @@ import java.io.Serial;
  * Thrown when an action has breached the licensed user limit of the server, or
  * degrading the authenticated user's permission level.
  */
-public class RedirectTo404Exception extends RuntimeException {
+public class RedirectTo404Exception extends JenkinsApiException {
 
     @Serial
     private static final long serialVersionUID = 1L;
 
-    public RedirectTo404Exception(final String arg0) {
-      super(arg0);
+    public RedirectTo404Exception(final String message) {
+      super(message, 404, null, null, null);
     }
 }

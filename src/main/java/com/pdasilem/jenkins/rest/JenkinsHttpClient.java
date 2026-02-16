@@ -22,8 +22,10 @@ import com.pdasilem.jenkins.rest.auth.AuthenticationType;
 import com.pdasilem.jenkins.rest.domain.common.Error;
 import com.pdasilem.jenkins.rest.domain.crumb.Crumb;
 import com.pdasilem.jenkins.rest.exception.ForbiddenException;
+import com.pdasilem.jenkins.rest.exception.JenkinsApiException;
 import com.pdasilem.jenkins.rest.exception.MethodNotAllowedException;
 import com.pdasilem.jenkins.rest.exception.RedirectTo404Exception;
+import com.pdasilem.jenkins.rest.exception.ResourceNotFoundException;
 import com.pdasilem.jenkins.rest.exception.UnsupportedMediaTypeException;
 
 import java.io.Closeable;
@@ -235,7 +237,7 @@ public class JenkinsHttpClient implements Closeable {
                 }
             } else {
                 if (!localCrumb.isResourceNotFound()) {
-                    throw new RuntimeException("Unexpected exception being thrown: error=" + localCrumb.crumb().errors().get(0));
+                    throw new RuntimeException("Unexpected exception being thrown: error=" + localCrumb.crumb().errors().getFirst());
                 }
             }
         }
@@ -251,7 +253,7 @@ public class JenkinsHttpClient implements Closeable {
                 if (localData == null) {
                     final Crumb crumb = fetchCrumb();
                     final boolean isRNFE = crumb.errors().isEmpty()
-                            || crumb.errors().get(0).exceptionName().endsWith("ResourceNotFoundException");
+                            || crumb.errors().getFirst().exceptionName().endsWith("ResourceNotFoundException");
                     this.crumbData = localData = new CrumbData(crumb, isRNFE);
                 }
             }
@@ -282,51 +284,47 @@ public class JenkinsHttpClient implements Closeable {
             if (statusCode >= 200 && statusCode < 400) {
                 return response.body();
             }
-            handleError(request, response);
-            return null;
+            throw handleError(request, response);
         } catch (IOException | InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new RuntimeException(e);
         }
     }
 
-    private void handleError(final HttpRequest request, final HttpResponse<String> response) {
+    private JenkinsApiException handleError(final HttpRequest request, final HttpResponse<String> response) {
         final String method = request.method();
         final String path = request.uri().getPath();
+        final String uri = request.uri().toString();
         final String body = response.body();
+        final int status = response.statusCode();
         final String message = body != null && !body.isEmpty()
                 ? body
-                : request.method() + " " + request.uri() + " -> " + response.statusCode();
+                : method + " " + uri + " -> " + status;
 
-        switch (response.statusCode()) {
-            case 400:
+        return switch (status) {
+            case 400 -> {
                 if ("POST".equals(method) && path.contains("/createItem") && message.contains("A job already exists with the name")) {
-                    throw new IllegalStateException(message);
+                    yield new JenkinsApiException("Job already exists: " + message, status, body, method, uri);
                 }
-                throw new IllegalArgumentException(message);
-            case 401:
-                throw new SecurityException(message);
-            case 403:
-                throw new ForbiddenException(message);
-            case 404:
+                yield new JenkinsApiException("Bad request: " + message, status, body, method, uri);
+            }
+            case 401 -> new JenkinsApiException("Authentication required: " + message, status, body, method, uri);
+            case 403 -> new ForbiddenException(message);
+            case 404 -> {
                 if ("POST".equals(method)) {
                     if (path.endsWith("/term") || path.endsWith("/term/")) {
-                        throw new RedirectTo404Exception("The term operation does not exist for " + request.uri() + ", try stop instead.");
+                        yield new RedirectTo404Exception("The term operation does not exist for " + uri + ", try stop instead.");
                     } else if (path.endsWith("/kill") || path.endsWith("/kill/")) {
-                        throw new RedirectTo404Exception("The kill operation does not exist for " + request.uri() + ", try stop instead.");
+                        yield new RedirectTo404Exception("The kill operation does not exist for " + uri + ", try stop instead.");
                     }
-                    throw new RuntimeException("Resource not found: " + request.uri());
                 }
-                return;
-            case 405:
-                throw new MethodNotAllowedException(message);
-            case 409:
-                throw new IllegalStateException(message);
-            case 415:
-                throw new UnsupportedMediaTypeException(message);
-            default:
-                throw new RuntimeException("HTTP " + response.statusCode() + ": " + message);
-        }
+                yield new ResourceNotFoundException("Resource not found: " + uri, body, method, uri);
+            }
+            case 405 -> new MethodNotAllowedException(message);
+            case 409 -> new JenkinsApiException("Conflict: " + message, status, body, method, uri);
+            case 415 -> new UnsupportedMediaTypeException(message);
+            default -> new JenkinsApiException("HTTP " + status + ": " + message, status, body, method, uri);
+        };
     }
 
     private static String normalizePath(final String path) {

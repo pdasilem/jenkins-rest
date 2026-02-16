@@ -58,7 +58,8 @@ public class QueueApi {
             }
             return RequestStatus.create(true, null);
         } catch (Exception e) {
-            return RequestStatus.create(false, null);
+            return RequestStatus.create(false, List.of(
+                    Error.create(null, e.getMessage(), e.getClass().getCanonicalName())));
         }
     }
 }

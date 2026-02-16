@@ -23,12 +23,12 @@ import java.io.Serial;
  * Thrown when an action has breached the licensed user limit of the server, or
  * degrading the authenticated user's permission level.
  */
-public class ForbiddenException extends RuntimeException {
+public class ForbiddenException extends JenkinsApiException {
 
     @Serial
     private static final long serialVersionUID = 1L;
 
-    public ForbiddenException(final String arg0) {
-      super(arg0);
+    public ForbiddenException(final String message) {
+      super(message, 403, null, null, null);
     }
 }

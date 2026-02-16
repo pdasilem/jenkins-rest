@@ -35,22 +35,14 @@ public class UserApi {
     }
 
     public User get() {
-        try {
-            final String userId = client.auth().identity();
-            return client.get("/user/" + userId + "/api/json", User.class);
-        } catch (Exception e) {
-            return null;
-        }
+        final String userId = client.auth().identity();
+        return client.get("/user/" + userId + "/api/json", User.class);
     }
 
     public ApiToken generateNewToken(final String tokenName) {
-        try {
-            final String userId = client.auth().identity();
-            return client.postForm("/user/" + userId + "/descriptorByName/jenkins.security.ApiTokenProperty/generateNewToken",
-                    Map.of("newTokenName", List.of(tokenName)), ApiToken.class);
-        } catch (Exception e) {
-            return null;
-        }
+        final String userId = client.auth().identity();
+        return client.postForm("/user/" + userId + "/descriptorByName/jenkins.security.ApiTokenProperty/generateNewToken",
+                Map.of("newTokenName", List.of(tokenName)), ApiToken.class);
     }
 
     public RequestStatus revoke(final String tokenUuid) {

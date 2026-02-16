@@ -20,14 +20,25 @@ package com.pdasilem.jenkins.rest.exception;
 import java.io.Serial;
 
 /**
- * Thrown when a method was used that is not supported by this endpoint.
+ * Thrown when the Jenkins REST API returns HTTP 404 (Not Found).
+ * Subclass of {@link JenkinsApiException} so callers can catch it specifically
+ * when they want to treat "not found" differently from other errors.
  */
-public class MethodNotAllowedException extends JenkinsApiException {
+public class ResourceNotFoundException extends JenkinsApiException {
 
     @Serial
     private static final long serialVersionUID = 1L;
 
-    public MethodNotAllowedException(final String message) {
-      super(message, 405, null, null, null);
+    public ResourceNotFoundException(final String message,
+                                     final String httpMethod,
+                                     final String requestUri) {
+        super(message, 404, null, httpMethod, requestUri);
+    }
+
+    public ResourceNotFoundException(final String message,
+                                     final String body,
+                                     final String httpMethod,
+                                     final String requestUri) {
+        super(message, 404, body, httpMethod, requestUri);
     }
 }

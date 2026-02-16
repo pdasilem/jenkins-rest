@@ -70,7 +70,7 @@ public class PluginManagerApiMockTest extends BaseJenkinsMockTest {
             assertNotNull(plugins);
             assertNull(plugins.clazz());
             assertFalse(plugins.errors().isEmpty());
-            assertTrue(plugins.errors().get(0).exceptionName().endsWith("SecurityException"));
+            assertTrue(plugins.errors().get(0).exceptionName().endsWith("JenkinsApiException"));
             final Map<String, Object> queryParams = new HashMap<>();
             queryParams.put("depth", 3);
             assertSent(server, "GET", "/pluginManager/api/json", queryParams);
@@ -109,7 +109,7 @@ public class PluginManagerApiMockTest extends BaseJenkinsMockTest {
             assertNotNull(status);
             assertFalse(status.value());
             assertFalse(status.errors().isEmpty());
-            assertTrue(status.errors().get(0).exceptionName().endsWith("SecurityException"));
+            assertTrue(status.errors().get(0).exceptionName().endsWith("JenkinsApiException"));
             assertSent(server, "POST", "/pluginManager/installNecessaryPlugins");
         } finally {
             jenkinsApi.close();

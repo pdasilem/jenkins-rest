@@ -26,12 +26,12 @@ import java.io.Serial;
  * double-check that you are setting the Content-Type header correctly on your
  * request (e.g. using -H "Content-Type: application/json" in cURL).
  */
-public class UnsupportedMediaTypeException extends RuntimeException {
+public class UnsupportedMediaTypeException extends JenkinsApiException {
 
     @Serial
     private static final long serialVersionUID = 1L;
 
-    public UnsupportedMediaTypeException(final String arg0) {
-      super(arg0);
+    public UnsupportedMediaTypeException(final String message) {
+      super(message, 415, null, null, null);
     }
 }
