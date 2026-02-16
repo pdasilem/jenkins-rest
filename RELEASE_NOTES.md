@@ -1,3 +1,30 @@
+### Version 2.1.0 (February 16, 2026)
+* **BREAKING CHANGE**: Refactored error handling - API methods now throw exceptions instead of returning `null`
+* ADDED: `JenkinsApiException` base exception with HTTP details (status code, body, method, URI)
+* ADDED: `ResourceNotFoundException` for HTTP 404 errors
+* CHANGED: `ForbiddenException`, `MethodNotAllowedException`, `RedirectTo404Exception`, `UnsupportedMediaTypeException` now extend `JenkinsApiException`
+* CHANGED: `JobsApi` methods (`jobInfo`, `buildInfo`, `config`, `description`, `lastBuildNumber`, `progressiveText`, `rename`, `workflow`, `pipelineNode`, `testReport`, etc.) now throw exceptions on errors instead of returning `null`/`false`
+* CHANGED: `UserApi.get()` and `generateNewToken()` now throw exceptions instead of returning `null`
+* CHANGED: `QueueApi`, `StatisticsApi` methods now propagate exceptions instead of silently returning `null`
+* IMPROVED: Error messages now include full HTTP context for better debugging
+* **Migration guide**: Replace `if (result == null)` checks with `try-catch` blocks for `JenkinsApiException` or its subclasses
+
+### Version 2.0.0 (February 12, 2026)
+* **BREAKING CHANGE**: Complete rewrite and modernization of the library
+* CHANGED: Migrated from JDK 11 to JDK 21
+* CHANGED: Replaced jclouds HTTP layer with `java.net.http.HttpClient`
+* CHANGED: Replaced AutoValue domain classes with Java Records (32 immutable domain classes)
+* REMOVED: Guice dependency injection framework
+* REMOVED: Guava utilities library
+* REMOVED: javax.ws.rs and javax.inject dependencies
+* CHANGED: Package namespace from `com.cdancy` to `com.pdasilem`
+* CHANGED: `JenkinsApi` is now a concrete class (was interface)
+* CHANGED: `JenkinsClient` uses builder pattern with `java.net.http.HttpClient`
+* CHANGED: `JenkinsAuthentication` is now a concrete class with Builder pattern
+* ADDED: `FolderPathHelper` for URL-encoding folder path segments
+* IMPROVED: Simplified architecture with 8 concrete API classes in `features/` package
+* IMPROVED: All 96 mock tests pass, full build succeeds
+
 ### Version 1.0.2 (September 29, 2022)
 * ADDED: extensive build info. - [Pull Request 259](https://github.com/cdancy/jenkins-rest/pull/259)
 

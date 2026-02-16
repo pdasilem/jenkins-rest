@@ -8,12 +8,13 @@ This project is a fork of [cdancy/jenkins-rest](https://github.com/cdancy/jenkin
 by [Christopher Dancy](https://github.com/cdancy), licensed under the
 [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0).
 
-Changes from the original version (2.0.0):
+Changes from the original version (2.0.0+):
 - Migrated from JDK 11 to JDK 21
 - Replaced jclouds HTTP layer with `java.net.http.HttpClient`
 - Replaced AutoValue domain classes with Java Records
 - Removed Guice, Guava, javax.ws.rs, javax.inject dependencies
 - Changed package namespace from `com.cdancy` to `com.pdasilem`
+- **Version 2.1.0**: Refactored error handling — API methods now throw exceptions instead of returning `null`
 
 ## Setup
 
@@ -42,7 +43,7 @@ Can be found in maven like so:
 <dependency>
   <groupId>io.github.pdasilem</groupId>
   <artifactId>jenkins-rest</artifactId>
-  <version>2.0.0</version>
+  <version>{version}</version>
 </dependency>
 ```
 
@@ -164,4 +165,3 @@ This project provides instructions to setup a [pre-configured Docker container](
 # Additional Resources
 
 * [Jenkins REST API](https://www.jenkins.io/doc/book/using/remote-access-api/)
-
