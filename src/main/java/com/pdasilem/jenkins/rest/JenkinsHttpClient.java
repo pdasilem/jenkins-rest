@@ -21,12 +21,7 @@ import com.google.gson.Gson;
 import com.pdasilem.jenkins.rest.auth.AuthenticationType;
 import com.pdasilem.jenkins.rest.domain.common.Error;
 import com.pdasilem.jenkins.rest.domain.crumb.Crumb;
-import com.pdasilem.jenkins.rest.exception.ForbiddenException;
 import com.pdasilem.jenkins.rest.exception.JenkinsApiException;
-import com.pdasilem.jenkins.rest.exception.MethodNotAllowedException;
-import com.pdasilem.jenkins.rest.exception.RedirectTo404Exception;
-import com.pdasilem.jenkins.rest.exception.ResourceNotFoundException;
-import com.pdasilem.jenkins.rest.exception.UnsupportedMediaTypeException;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -309,20 +304,20 @@ public class JenkinsHttpClient implements Closeable {
                 yield new JenkinsApiException("Bad request: " + message, status, body, method, uri);
             }
             case 401 -> new JenkinsApiException("Authentication required: " + message, status, body, method, uri);
-            case 403 -> new ForbiddenException(message);
+            case 403 -> new JenkinsApiException("Forbidden: " + message, status, body, method, uri);
             case 404 -> {
                 if ("POST".equals(method)) {
                     if (path.endsWith("/term") || path.endsWith("/term/")) {
-                        yield new RedirectTo404Exception("The term operation does not exist for " + uri + ", try stop instead.");
+                        yield new JenkinsApiException("The term operation does not exist for " + uri + ", try stop instead.", status, body, method, uri);
                     } else if (path.endsWith("/kill") || path.endsWith("/kill/")) {
-                        yield new RedirectTo404Exception("The kill operation does not exist for " + uri + ", try stop instead.");
+                        yield new JenkinsApiException("The kill operation does not exist for " + uri + ", try stop instead.", status, body, method, uri);
                     }
                 }
-                yield new ResourceNotFoundException("Resource not found: " + uri, body, method, uri);
+                yield new JenkinsApiException("Resource not found: " + uri, status, body, method, uri);
             }
-            case 405 -> new MethodNotAllowedException(message);
+            case 405 -> new JenkinsApiException("Method not allowed: " + message, status, body, method, uri);
             case 409 -> new JenkinsApiException("Conflict: " + message, status, body, method, uri);
-            case 415 -> new UnsupportedMediaTypeException(message);
+            case 415 -> new JenkinsApiException("Unsupported media type: " + message, status, body, method, uri);
             default -> new JenkinsApiException("HTTP " + status + ": " + message, status, body, method, uri);
         };
     }

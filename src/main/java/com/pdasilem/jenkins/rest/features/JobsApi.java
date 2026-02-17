@@ -60,6 +60,9 @@ public class JobsApi {
 
     public InputStream artifact(final String optionalFolderPath, final String jobName, final int buildNumber, final String relativeArtifactPath) {
         final HttpResponse<InputStream> resp = client.getStream("/" + FolderPathHelper.encode(optionalFolderPath) + "job/" + jobName + "/" + buildNumber + "/artifact/" + relativeArtifactPath);
+        if (resp.statusCode() >= 400) {
+            throw new JenkinsApiException("Failed to get artifact: HTTP " + resp.statusCode(), resp.statusCode(), null, "GET", resp.uri().toString());
+        }
         return resp.body();
     }
 

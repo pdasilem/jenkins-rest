@@ -1,3 +1,12 @@
+### Version 2.2.0 (February 17, 2026)
+* **BREAKING CHANGE**: Simplified exception hierarchy - removed all specialized HTTP exception classes
+* CHANGED: All HTTP errors now throw `JenkinsApiException` with full error details (status code, body, method, URI)
+* IMPROVED: `JenkinsApiException.getMessage()` now includes response body (truncated to 1000 chars) for better error visibility in logs
+* IMPROVED: `JenkinsApiException.toString()` includes response body (truncated to 5000 chars) with total length indicator for better debugging
+* FIXED: `JobsApi.artifact()` now throws `JenkinsApiException` on HTTP errors (404, 500, etc.) instead of returning error stream
+* FIXED: Gradle deprecation warnings - migrated to Java toolchain API and fixed custom Test task configuration
+* **Migration guide**: Replace `catch (ResourceNotFoundException e)` with `catch (JenkinsApiException e)` and check `e.statusCode() == 404`
+
 ### Version 2.1.0 (February 16, 2026)
 * **BREAKING CHANGE**: Refactored error handling - API methods now throw exceptions instead of returning `null`
 * ADDED: `JenkinsApiException` base exception with HTTP details (status code, body, method, URI)

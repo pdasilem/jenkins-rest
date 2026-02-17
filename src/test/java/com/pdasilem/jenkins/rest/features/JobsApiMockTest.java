@@ -33,7 +33,6 @@ import com.pdasilem.jenkins.rest.domain.job.PipelineNodeLog;
 import com.pdasilem.jenkins.rest.domain.job.ProgressiveText;
 import com.pdasilem.jenkins.rest.domain.job.Workflow;
 import com.pdasilem.jenkins.rest.exception.JenkinsApiException;
-import com.pdasilem.jenkins.rest.exception.ResourceNotFoundException;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import org.testng.annotations.Test;
@@ -109,7 +108,7 @@ public class JobsApiMockTest extends BaseJenkinsMockTest {
         }
     }
 
-    @Test(expectedExceptions = ResourceNotFoundException.class)
+    @Test(expectedExceptions = JenkinsApiException.class)
     public void testGetJobInfoNotFound() throws Exception {
         MockWebServer server = mockWebServer();
 
@@ -147,7 +146,7 @@ public class JobsApiMockTest extends BaseJenkinsMockTest {
         }
     }
 
-    @Test(expectedExceptions = ResourceNotFoundException.class)
+    @Test(expectedExceptions = JenkinsApiException.class)
     public void testGetBuildInfoNotFound() throws Exception {
         MockWebServer server = mockWebServer();
 
@@ -179,7 +178,7 @@ public class JobsApiMockTest extends BaseJenkinsMockTest {
         }
     }
 
-    @Test(expectedExceptions = ResourceNotFoundException.class)
+    @Test(expectedExceptions = JenkinsApiException.class)
     public void testGetArtifactNotFound() throws Exception {
         MockWebServer server = mockWebServer();
 
@@ -283,7 +282,7 @@ public class JobsApiMockTest extends BaseJenkinsMockTest {
         }
     }
 
-    @Test(expectedExceptions = ResourceNotFoundException.class)
+    @Test(expectedExceptions = JenkinsApiException.class)
     public void testGetDescriptionNonExistentJob() throws Exception {
         MockWebServer server = mockWebServer();
 
@@ -344,7 +343,7 @@ public class JobsApiMockTest extends BaseJenkinsMockTest {
         }
     }
 
-    @Test(expectedExceptions = ResourceNotFoundException.class)
+    @Test(expectedExceptions = JenkinsApiException.class)
     public void testGetConfigNonExistentJob() throws Exception {
         MockWebServer server = mockWebServer();
 
@@ -374,7 +373,7 @@ public class JobsApiMockTest extends BaseJenkinsMockTest {
         }
     }
 
-    @Test(expectedExceptions = ResourceNotFoundException.class)
+    @Test(expectedExceptions = JenkinsApiException.class)
     public void testUpdateConfigNonExistentJob() throws Exception {
         MockWebServer server = mockWebServer();
 
@@ -731,7 +730,7 @@ public class JobsApiMockTest extends BaseJenkinsMockTest {
         }
     }
 
-    @Test(expectedExceptions = ResourceNotFoundException.class)
+    @Test(expectedExceptions = JenkinsApiException.class)
     public void testGetLastBuildNumberJobNotExist() throws Exception {
         MockWebServer server = mockWebServer();
 
@@ -762,7 +761,7 @@ public class JobsApiMockTest extends BaseJenkinsMockTest {
         }
     }
 
-    @Test(expectedExceptions = ResourceNotFoundException.class)
+    @Test(expectedExceptions = JenkinsApiException.class)
     public void testGetLastBuildTimeStampJobNotExist() throws Exception {
         MockWebServer server = mockWebServer();
 
@@ -841,7 +840,7 @@ public class JobsApiMockTest extends BaseJenkinsMockTest {
         }
     }
 
-    @Test(expectedExceptions = ResourceNotFoundException.class)
+    @Test(expectedExceptions = JenkinsApiException.class)
     public void testRenameJobNotExist() throws Exception {
         MockWebServer server = mockWebServer();
 
@@ -871,7 +870,7 @@ public class JobsApiMockTest extends BaseJenkinsMockTest {
         }
     }
 
-    @Test(expectedExceptions = ResourceNotFoundException.class)
+    @Test(expectedExceptions = JenkinsApiException.class)
     public void testRunHistoryNotExist() throws Exception {
         MockWebServer server = mockWebServer();
 
@@ -901,7 +900,7 @@ public class JobsApiMockTest extends BaseJenkinsMockTest {
         }
     }
 
-    @Test(expectedExceptions = ResourceNotFoundException.class)
+    @Test(expectedExceptions = JenkinsApiException.class)
     public void testWorkflowNotExist() throws Exception {
         MockWebServer server = mockWebServer();
 
@@ -931,7 +930,7 @@ public class JobsApiMockTest extends BaseJenkinsMockTest {
         }
     }
 
-    @Test(expectedExceptions = ResourceNotFoundException.class)
+    @Test(expectedExceptions = JenkinsApiException.class)
     public void testPipelineNodeNotExist() throws Exception {
         MockWebServer server = mockWebServer();
 
@@ -960,7 +959,7 @@ public class JobsApiMockTest extends BaseJenkinsMockTest {
         }
     }
 
-    @Test(expectedExceptions = ResourceNotFoundException.class)
+    @Test(expectedExceptions = JenkinsApiException.class)
     public void testJobTestReportNotExists() throws Exception {
         MockWebServer server = mockWebServer();
 
@@ -990,7 +989,7 @@ public class JobsApiMockTest extends BaseJenkinsMockTest {
         }
     }
 
-    @Test(expectedExceptions = ResourceNotFoundException.class)
+    @Test(expectedExceptions = JenkinsApiException.class)
     public void testPipelineNodeLogNotExist() throws Exception {
         MockWebServer server = mockWebServer();
 

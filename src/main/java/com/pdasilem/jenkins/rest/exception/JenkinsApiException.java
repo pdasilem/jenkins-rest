@@ -63,12 +63,31 @@ public class JenkinsApiException extends RuntimeException {
     }
 
     @Override
+    public String getMessage() {
+        final String originalMessage = super.getMessage();
+        if (body == null || body.isEmpty()) {
+            return originalMessage;
+        }
+        final String truncatedBody = body.length() > 1000
+            ? body.substring(0, 1000) + "... (truncated)"
+            : body;
+        return originalMessage + " | Response body: " + truncatedBody;
+    }
+
+    @Override
     public String toString() {
-        return "JenkinsApiException{" +
-                "statusCode=" + statusCode +
-                ", httpMethod='" + httpMethod + '\'' +
-                ", requestUri='" + requestUri + '\'' +
-                ", message='" + getMessage() + '\'' +
-                '}';
+        final StringBuilder sb = new StringBuilder("JenkinsApiException{");
+        sb.append("statusCode=").append(statusCode);
+        sb.append(", httpMethod='").append(httpMethod).append('\'');
+        sb.append(", requestUri='").append(requestUri).append('\'');
+        sb.append(", message='").append(super.getMessage()).append('\'');
+        if (body != null && !body.isEmpty()) {
+            final String truncatedBody = body.length() > 5000
+                ? body.substring(0, 5000) + "... (truncated, total length: " + body.length() + ")"
+                : body;
+            sb.append(", body='").append(truncatedBody).append('\'');
+        }
+        sb.append('}');
+        return sb.toString();
     }
 }
