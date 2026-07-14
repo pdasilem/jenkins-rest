@@ -19,8 +19,8 @@ package com.pdasilem.jenkins.rest.features;
 import com.pdasilem.jenkins.rest.BaseJenkinsMockTest;
 import com.pdasilem.jenkins.rest.JenkinsApi;
 import com.pdasilem.jenkins.rest.domain.statistics.OverallLoad;
-import okhttp3.mockwebserver.MockResponse;
-import okhttp3.mockwebserver.MockWebServer;
+import mockwebserver3.MockResponse;
+import mockwebserver3.MockWebServer;
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.assertNotNull;
@@ -35,7 +35,7 @@ public class StatisticsApiMockTest extends BaseJenkinsMockTest {
     public void testOverallLoad() throws Exception {
         MockWebServer server = mockWebServer();
 
-        server.enqueue(new MockResponse().setBody(payloadFromResource("/overall-load.json")).setResponseCode(200));
+        server.enqueue(new MockResponse.Builder().body(payloadFromResource("/overall-load.json")).code(200).build());
         JenkinsApi jenkinsApi = api(server.url("/").url());
         StatisticsApi api = jenkinsApi.statisticsApi();
         try {
@@ -44,7 +44,7 @@ public class StatisticsApiMockTest extends BaseJenkinsMockTest {
             assertSent(server, "GET", "/overallLoad/api/json");
         } finally {
             jenkinsApi.close();
-            server.shutdown();
+            server.close();
         }
     }
 }

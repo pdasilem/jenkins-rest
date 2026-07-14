@@ -13,6 +13,13 @@ nexusPublishing {
 }
 
 publishing {
+    repositories {
+        maven {
+            name = "centralBundle"
+            url = layout.buildDirectory.dir("staging-deploy")
+        }
+    }
+
     publications {
         mavenJava(MavenPublication) {
             from components.java
@@ -48,5 +55,33 @@ publishing {
 }
 
 signing {
-    sign publishing.publications.mavenJava
+    def signingKey = providers.gradleProperty("signingKey").orNull
+    def signingPassword = providers.gradleProperty("signingPassword").orNull
+
+    if (signingKey) {
+        useInMemoryPgpKeys(signingKey, signingPassword)
+        sign publishing.publications.mavenJava
+    }
+}
+
+tasks.matching { it.name == "publishToSonatype" || it.name == "bundleForCentral" }.configureEach {
+    doFirst {
+        if (!providers.gradleProperty("signingKey").isPresent()) {
+            throw new GradleException("signingKey is not set. Maven Central rejects unsigned artifacts. " +
+                    "Pass -PsigningKey=\"\$(gpg --armor --export-secret-keys <KEY_ID>)\" -PsigningPassword=... " +
+                    "or set ORG_GRADLE_PROJECT_signingKey / ORG_GRADLE_PROJECT_signingPassword.")
+        }
+    }
+}
+
+tasks.register("bundleForCentral", Zip) {
+    group = "Publishing"
+    description = "Builds the deployment bundle to upload at https://central.sonatype.com"
+
+    dependsOn tasks.named("publishMavenJavaPublicationToCentralBundleRepository")
+
+    from layout.buildDirectory.dir("staging-deploy")
+    exclude "**/maven-metadata*"
+    archiveFileName = "${project.name}-${project.version}-bundle.zip"
+    destinationDirectory = layout.buildDirectory.dir("distributions")
 }

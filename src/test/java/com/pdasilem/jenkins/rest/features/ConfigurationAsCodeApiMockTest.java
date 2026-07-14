@@ -19,8 +19,8 @@ package com.pdasilem.jenkins.rest.features;
 import com.pdasilem.jenkins.rest.BaseJenkinsMockTest;
 import com.pdasilem.jenkins.rest.JenkinsApi;
 import com.pdasilem.jenkins.rest.domain.common.RequestStatus;
-import okhttp3.mockwebserver.MockResponse;
-import okhttp3.mockwebserver.MockWebServer;
+import mockwebserver3.MockResponse;
+import mockwebserver3.MockWebServer;
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.assertEquals;
@@ -37,7 +37,7 @@ public class ConfigurationAsCodeApiMockTest extends BaseJenkinsMockTest {
     public void testCascCheck() throws Exception {
         try (MockWebServer server = mockWebServer();
              JenkinsApi jenkinsApi = api(server.url("/").url())) {
-            server.enqueue(new MockResponse().setResponseCode(200));
+            server.enqueue(new MockResponse.Builder().code(200).build());
 
             ConfigurationAsCodeApi api = jenkinsApi.configurationAsCodeApi();
             RequestStatus requestStatus = api.check("random");
@@ -51,7 +51,7 @@ public class ConfigurationAsCodeApiMockTest extends BaseJenkinsMockTest {
     public void testCascApply() throws Exception {
         try (MockWebServer server = mockWebServer();
              JenkinsApi jenkinsApi = api(server.url("/").url())) {
-            server.enqueue(new MockResponse().setResponseCode(200));
+            server.enqueue(new MockResponse.Builder().code(200).build());
 
             ConfigurationAsCodeApi api = jenkinsApi.configurationAsCodeApi();
             RequestStatus requestStatus = api.apply("random");
@@ -64,7 +64,7 @@ public class ConfigurationAsCodeApiMockTest extends BaseJenkinsMockTest {
     public void testBadCascCheck() throws Exception {
         MockWebServer server = mockWebServer();
 
-        server.enqueue(new MockResponse().setResponseCode(500));
+        server.enqueue(new MockResponse.Builder().code(500).build());
         JenkinsApi jenkinsApi = api(server.url("/").url());
         ConfigurationAsCodeApi api = jenkinsApi.configurationAsCodeApi();
         try {
@@ -74,14 +74,14 @@ public class ConfigurationAsCodeApiMockTest extends BaseJenkinsMockTest {
             assertEquals(requestStatus.errors().size(), 1);
         } finally {
             jenkinsApi.close();
-            server.shutdown();
+            server.close();
         }
     }
 
     public void testBadCascApply() throws Exception {
         MockWebServer server = mockWebServer();
 
-        server.enqueue(new MockResponse().setResponseCode(500));
+        server.enqueue(new MockResponse.Builder().code(500).build());
         JenkinsApi jenkinsApi = api(server.url("/").url());
         ConfigurationAsCodeApi api = jenkinsApi.configurationAsCodeApi();
         try {
@@ -91,7 +91,7 @@ public class ConfigurationAsCodeApiMockTest extends BaseJenkinsMockTest {
             assertEquals(requestStatus.errors().size(), 1);
         } finally {
             jenkinsApi.close();
-            server.shutdown();
+            server.close();
         }
     }
 }

@@ -22,6 +22,8 @@ package com.pdasilem.jenkins.rest;
  */
 public class TestUtilities extends JenkinsUtils {
 
+    public static final String TEST_ENDPOINT_SYSTEM_PROPERTY = "test.jenkins.endpoint";
+
     public static final String TEST_CREDENTIALS_SYSTEM_PROPERTY = "test.jenkins.usernamePassword";
     public static final String TEST_CREDENTIALS_ENVIRONMENT_VARIABLE = TEST_CREDENTIALS_SYSTEM_PROPERTY.replaceAll("\\.", "_").toUpperCase();
 

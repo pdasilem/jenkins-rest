@@ -20,8 +20,8 @@ import com.pdasilem.jenkins.rest.BaseJenkinsMockTest;
 import com.pdasilem.jenkins.rest.JenkinsApi;
 import com.pdasilem.jenkins.rest.domain.user.ApiToken;
 import com.pdasilem.jenkins.rest.domain.user.User;
-import okhttp3.mockwebserver.MockResponse;
-import okhttp3.mockwebserver.MockWebServer;
+import mockwebserver3.MockResponse;
+import mockwebserver3.MockWebServer;
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.assertEquals;
@@ -39,7 +39,7 @@ public class UserApiMockTest extends BaseJenkinsMockTest {
         MockWebServer server = mockWebServer();
 
         String body = payloadFromResource("/user.json");
-        server.enqueue(new MockResponse().setBody(body).setResponseCode(200));
+        server.enqueue(new MockResponse.Builder().body(body).code(200).build());
         //JenkinsApi jenkinsApi = api(server.url("/").url());
         try (JenkinsApi jenkinsApi = api(server.url("/").url())) {
             UserApi api = jenkinsApi.userApi();
@@ -54,7 +54,7 @@ public class UserApiMockTest extends BaseJenkinsMockTest {
             assertEquals(output.id(), "admin");
             assertSent(server, "GET", "/user/user/api/json");
         } finally {
-            server.shutdown();
+            server.close();
         }
     }
 
@@ -63,7 +63,7 @@ public class UserApiMockTest extends BaseJenkinsMockTest {
         MockWebServer server = mockWebServer();
 
         String body = payloadFromResource("/api-token.json");
-        server.enqueue(new MockResponse().setBody(body).setResponseCode(200));
+        server.enqueue(new MockResponse.Builder().body(body).code(200).build());
         try (JenkinsApi jenkinsApi = api(server.url("/").url())) {
             UserApi api = jenkinsApi.userApi();
             ApiToken output = api.generateNewToken("random");
@@ -79,7 +79,7 @@ public class UserApiMockTest extends BaseJenkinsMockTest {
             assertEquals(output.data().tokenValue(), "112fe6e9b1b94eb1ee58f0ea4f5a1ac7bf");
             assertSentWithFormData(server, "POST", "/user/user/descriptorByName/jenkins.security.ApiTokenProperty/generateNewToken", "newTokenName=random");
         } finally {
-            server.shutdown();
+            server.close();
         }
     }
 

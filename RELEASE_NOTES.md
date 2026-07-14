@@ -1,3 +1,22 @@
+### Version 3.0.0 (July 14, 2026)
+* **BREAKING CHANGE**: Requires JDK 25 — the published bytecode target is now 25, so consumers on JDK 21 must stay on 2.2.0
+* CHANGED: Build migrated to Gradle 9.6.1 (JDK 25 requires Gradle 9.1.0 or newer); Java toolchain set to 25
+* CHANGED: Dependency versions are now declared in a Gradle version catalog (`gradle/libs.versions.toml`)
+* CHANGED: Test suite migrated from the deprecated `okhttp3.mockwebserver` API to `mockwebserver3` (OkHttp 5.4.0)
+* UPDATED: Gson 2.14.0, TestNG 7.12.0, AssertJ 3.27.7, Logback 1.5.38, JGit 7.7.0
+* FIXED: Jenkins test image pinned to a core (2.401.3) older than its own plugins required, so `configuration-as-code` and `badge` could not load; now on 2.568.1-lts-jdk25
+* FIXED: `buildWithParameters()` threw a `NullPointerException` when a parameter was mapped to a `null` value list
+* FIXED: `UserApi.revoke()` reported success regardless of the HTTP status; it now returns an error for responses of 400 and above
+* FIXED: `Action.iconPath()` returned `null` against modern Jenkins, because the badge plugin renamed the JSON field to `icon`; both names are now accepted
+* FIXED: Replaced the deprecated `new URL(String)` constructor in the authentication live tests
+* REMOVED: Deprecated `cloudbees-credentials` plugin from the test Jenkins image
+* CI: Build matrix now runs on JDK 21 and 25; workflow trigger changed from `pull_request_target` to `pull_request`
+* TESTS: Live tests now assert the exception-based contract introduced in 2.1.0 instead of the removed `null` returns, and the badge pipeline fixture uses the `addSummary` step required by badge plugin 3.x
+* **Migration guide**:
+  * Move your project to JDK 25. The public API is unchanged — 511 public members, identical signatures — so no source changes are required beyond the JDK itself.
+  * If you call `UserApi.revoke()`, stop assuming it always succeeds: it now returns `RequestStatus.value() == false` with an error when Jenkins answers 400 or above.
+  * If you run the integration tests against your own Jenkins, it must be on core 2.541.3 or newer and have the `badge` plugin installed.
+
 ### Version 2.2.0 (February 17, 2026)
 * **BREAKING CHANGE**: Simplified exception hierarchy - removed all specialized HTTP exception classes
 * CHANGED: All HTTP errors now throw `JenkinsApiException` with full error details (status code, body, method, URI)

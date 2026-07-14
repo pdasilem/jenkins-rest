@@ -24,7 +24,7 @@ import com.pdasilem.jenkins.rest.domain.user.ApiToken;
 import com.pdasilem.jenkins.rest.features.UserApi;
 import org.testng.annotations.Test;
 
-import java.net.URL;
+import java.net.URI;
 
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
@@ -35,7 +35,7 @@ public class JenkinsAuthenticationFilterLiveTest extends BaseJenkinsTest {
 
     @Test
     public void testAnonymousNeedsCrumb() throws Exception {
-        try (JenkinsApi jenkinsApi = api(new URL(endPoint), AuthenticationType.Anonymous, null)) {
+        try (JenkinsApi jenkinsApi = api(URI.create(endPoint).toURL(), AuthenticationType.Anonymous, null)) {
             // Do something that needs POST so the crumb logic is exercized
             String config = payloadFromResource("/freestyle-project-no-params.xml");
             RequestStatus success = jenkinsApi.jobsApi().create(null, "DevTest", config);
@@ -53,7 +53,7 @@ public class JenkinsAuthenticationFilterLiveTest extends BaseJenkinsTest {
     public void testUsernamePasswordNeedsCrumb() throws Exception {
         final String usernamePassword = System.getProperty("test.jenkins.usernamePassword");
 
-        try (JenkinsApi jenkinsApi = api(new URL(endPoint), AuthenticationType.UsernamePassword, usernamePassword)) {
+        try (JenkinsApi jenkinsApi = api(URI.create(endPoint).toURL(), AuthenticationType.UsernamePassword, usernamePassword)) {
             // Do something that needs POST so the crumb logic is exercized
             String config = payloadFromResource("/freestyle-project-no-params.xml");
             RequestStatus success = jenkinsApi.jobsApi().create(null, "DevTest", config);
@@ -77,7 +77,7 @@ public class JenkinsAuthenticationFilterLiveTest extends BaseJenkinsTest {
         System.out.println("Okay, we have the token: " + apiToken.data().tokenValue());
         final String usernameApiToken = usernamePassword.split(":")[0] + ":" + apiToken.data().tokenValue();
 
-        try (JenkinsApi jenkinsApi = api(new URL(endPoint), AuthenticationType.UsernameApiToken, usernameApiToken)) {
+        try (JenkinsApi jenkinsApi = api(URI.create(endPoint).toURL(), AuthenticationType.UsernameApiToken, usernameApiToken)) {
             // Do something that needs POST so the crumb logic is exercized
             String config = payloadFromResource("/freestyle-project-no-params.xml");
             RequestStatus success = jenkinsApi.jobsApi().create(null, "DevTest", config);
@@ -95,7 +95,7 @@ public class JenkinsAuthenticationFilterLiveTest extends BaseJenkinsTest {
 
     private ApiToken generateNewApiToken(final String credStr) throws Exception {
         UserApi user;
-        try (JenkinsApi api = api(new URL(endPoint), AuthenticationType.UsernamePassword, credStr)) {
+        try (JenkinsApi api = api(URI.create(endPoint).toURL(), AuthenticationType.UsernamePassword, credStr)) {
             user = api.userApi();
         }
         return user.generateNewToken("filter-test-token");
@@ -103,7 +103,7 @@ public class JenkinsAuthenticationFilterLiveTest extends BaseJenkinsTest {
 
     private void revokeApiToken(final String credStr, final ApiToken apiToken) throws Exception {
         UserApi user;
-        try (JenkinsApi api = api(new URL(endPoint), AuthenticationType.UsernameApiToken, credStr)) {
+        try (JenkinsApi api = api(URI.create(endPoint).toURL(), AuthenticationType.UsernameApiToken, credStr)) {
             user = api.userApi();
         }
         user.revoke(apiToken.data().tokenUuid());

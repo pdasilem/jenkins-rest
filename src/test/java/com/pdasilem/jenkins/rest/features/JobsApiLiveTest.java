@@ -17,6 +17,7 @@
 package com.pdasilem.jenkins.rest.features;
 
 import com.pdasilem.jenkins.rest.BaseJenkinsApiLiveTest;
+import com.pdasilem.jenkins.rest.exception.JenkinsApiException;
 import com.pdasilem.jenkins.rest.domain.common.LongResponse;
 import com.pdasilem.jenkins.rest.domain.common.RequestStatus;
 import com.pdasilem.jenkins.rest.domain.job.BuildInfo;
@@ -93,10 +94,10 @@ public class JobsApiLiveTest extends BaseJenkinsApiLiveTest {
         // Strangely, term does not work on FreeStyleBuild
         assertFalse(termStatus.value());
         assertEquals(termStatus.errors().size(), 1);
-        assertEquals(termStatus.errors().get(0).message(), "The term operation does not exist for " +
+        assertTrue(termStatus.errors().get(0).message().startsWith("The term operation does not exist for " +
             System.getProperty("test.jenkins.endpoint") +
-            "/job/"+FREESTYLE_JOB_NAME+"/"+queueItem.executable().number()+"/term/, try stop instead.");
-        assertEquals(termStatus.errors().get(0).exceptionName(), "exception.com.pdasilem.jenkins.rest.RedirectTo404Exception");
+            "/job/"+FREESTYLE_JOB_NAME+"/"+queueItem.executable().number()+"/term, try stop instead."));
+        assertEquals(termStatus.errors().get(0).exceptionName(), JenkinsApiException.class.getCanonicalName());
         api().stop(null, FREESTYLE_JOB_NAME, queueItem.executable().number());
         BuildInfo buildInfoStop = getCompletedBuild(FREESTYLE_JOB_NAME, queueItem);
         assertEquals(buildInfoStop.result(), "ABORTED");
@@ -115,10 +116,10 @@ public class JobsApiLiveTest extends BaseJenkinsApiLiveTest {
         // Strangely, kill does not work on FreeStyleBuild
         assertFalse(killStatus.value());
         assertEquals(killStatus.errors().size(), 1);
-        assertEquals(killStatus.errors().get(0).message(), "The kill operation does not exist for " +
+        assertTrue(killStatus.errors().get(0).message().startsWith("The kill operation does not exist for " +
             System.getProperty("test.jenkins.endpoint") +
-            "/job/"+FREESTYLE_JOB_NAME+"/"+queueItem.executable().number()+"/kill/, try stop instead.");
-        assertEquals(killStatus.errors().get(0).exceptionName(), "exception.com.pdasilem.jenkins.rest.RedirectTo404Exception");
+            "/job/"+FREESTYLE_JOB_NAME+"/"+queueItem.executable().number()+"/kill, try stop instead."));
+        assertEquals(killStatus.errors().get(0).exceptionName(), JenkinsApiException.class.getCanonicalName());
         api().stop(null, FREESTYLE_JOB_NAME, queueItem.executable().number());
         BuildInfo buildInfoStop = getCompletedBuild(FREESTYLE_JOB_NAME, queueItem);
         assertEquals(buildInfoStop.result(), "ABORTED");
@@ -201,16 +202,14 @@ public class JobsApiLiveTest extends BaseJenkinsApiLiveTest {
         assertTrue(output.builds().isEmpty());
     }
 
-    @Test(dependsOnMethods = "testGetJobInfo")
+    @Test(dependsOnMethods = "testGetJobInfo", expectedExceptions = JenkinsApiException.class)
     public void testLastBuildNumberOnJobWithNoBuilds() {
-        Integer output = api().lastBuildNumber(null, "DevTest");
-        assertNull(output);
+        api().lastBuildNumber(null, "DevTest");
     }
 
-    @Test(dependsOnMethods = "testLastBuildNumberOnJobWithNoBuilds")
+    @Test(dependsOnMethods = "testLastBuildNumberOnJobWithNoBuilds", expectedExceptions = JenkinsApiException.class)
     public void testLastBuildTimestampOnJobWithNoBuilds() {
-        String output = api().lastBuildTimestamp(null, "DevTest");
-        assertNull(output);
+        api().lastBuildTimestamp(null, "DevTest");
     }
 
     @Test(dependsOnMethods = "testLastBuildTimestampOnJobWithNoBuilds")
@@ -278,7 +277,7 @@ public class JobsApiLiveTest extends BaseJenkinsApiLiveTest {
         for (int idx = 0; idx < buildInfo.actions().size(); idx++) {
             if (buildInfo.actions().get(idx).text() != null) {
                 if (buildInfo.actions().get(idx).text().equals("Hudson, we have a problem.") &&
-                    buildInfo.actions().get(idx).iconPath().equals("error.svg") &&
+                    buildInfo.actions().get(idx).iconPath().endsWith("error.svg") &&
                     buildInfo.actions().get(idx).clazz().equals("com.jenkinsci.plugins.badge.action.BadgeSummaryAction")) {
                     found = true;
                 }
@@ -380,10 +379,9 @@ public class JobsApiLiveTest extends BaseJenkinsApiLiveTest {
         assertTrue(success);
     }
 
-    @Test(dependsOnMethods = "testRenameJob")
+    @Test(dependsOnMethods = "testRenameJob", expectedExceptions = JenkinsApiException.class)
     public void testRenameJobNotExist(){
-        boolean success = api().rename(null,"JobNotExist","NewDevTest");
-        assertFalse(success);
+        api().rename(null,"JobNotExist","NewDevTest");
     }
 
     @Test(dependsOnMethods = "testRenameJobNotExist")
@@ -615,10 +613,9 @@ public class JobsApiLiveTest extends BaseJenkinsApiLiveTest {
         assertTrue(success2.value());
     }
 
-    @Test
+    @Test(expectedExceptions = JenkinsApiException.class)
     public void testGetJobInfoNonExistentJob() {
-        JobInfo output = api().jobInfo(null, randomString());
-        assertNull(output);
+        api().jobInfo(null, randomString());
     }
 
     @Test
@@ -628,22 +625,19 @@ public class JobsApiLiveTest extends BaseJenkinsApiLiveTest {
         assertFalse(success.value());
     }
 
-    @Test
+    @Test(expectedExceptions = JenkinsApiException.class)
     public void testGetConfigNonExistentJob() {
-        String output = api().config(null, randomString());
-        assertNull(output);
+        api().config(null, randomString());
     }
 
-    @Test
+    @Test(expectedExceptions = JenkinsApiException.class)
     public void testSetDescriptionNonExistentJob() {
-        boolean success = api().description(null, randomString(), "RandomDescription");
-        assertFalse(success);
+        api().description(null, randomString(), "RandomDescription");
     }
 
-    @Test
+    @Test(expectedExceptions = JenkinsApiException.class)
     public void testGetDescriptionNonExistentJob() {
-        String output = api().description(null, randomString());
-        assertNull(output);
+        api().description(null, randomString());
     }
 
     @Test
@@ -657,10 +651,9 @@ public class JobsApiLiveTest extends BaseJenkinsApiLiveTest {
         assertNotNull(output.errors().get(0).exceptionName());
     }
 
-    @Test
+    @Test(expectedExceptions = JenkinsApiException.class)
     public void testGetBuildInfoNonExistentJob() {
-        BuildInfo output = api().buildInfo(null, randomString(), 123);
-        assertNull(output);
+        api().buildInfo(null, randomString(), 123);
     }
 
     @Test

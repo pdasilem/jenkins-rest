@@ -42,11 +42,12 @@ public class BaseJenkinsApiLiveTest {
 
     @BeforeClass
     public void setup() {
-        final JenkinsClient.Builder builder = JenkinsClient.builder();
+        final JenkinsClient.Builder builder = JenkinsClient.builder()
+                .endPoint(System.getProperty(TestUtilities.TEST_ENDPOINT_SYSTEM_PROPERTY));
         if (jenkinsAuthentication.authType() == AuthenticationType.UsernamePassword) {
-            builder.credentials(jenkinsAuthentication.identity() + ":" + jenkinsAuthentication.authValue());
+            builder.credentials(jenkinsAuthentication.authValue());
         } else if (jenkinsAuthentication.authType() == AuthenticationType.UsernameApiToken) {
-            builder.apiToken(jenkinsAuthentication.identity() + ":" + jenkinsAuthentication.authValue());
+            builder.apiToken(jenkinsAuthentication.authValue());
         }
         this.client = builder.build();
         this.api = client.api();

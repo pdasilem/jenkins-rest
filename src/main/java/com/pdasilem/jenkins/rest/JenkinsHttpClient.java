@@ -334,9 +334,10 @@ public class JenkinsHttpClient implements Closeable {
             return "";
         }
         return formParams.entrySet().stream()
+                .filter(entry -> entry.getValue() != null)
                 .flatMap(entry -> entry.getValue().stream()
                         .map(value -> URLEncoder.encode(entry.getKey(), StandardCharsets.UTF_8)
-                                + "=" + URLEncoder.encode(value, StandardCharsets.UTF_8)))
+                                + "=" + URLEncoder.encode(value != null ? value : "", StandardCharsets.UTF_8)))
                 .collect(Collectors.joining("&"));
     }
 

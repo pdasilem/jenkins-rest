@@ -1,6 +1,5 @@
 plugins:
     - artifactId: antisamy-markup-formatter
-    - artifactId: cloudbees-credentials
     - artifactId: cloudbees-folder
     - artifactId: configuration-as-code
     - artifactId: workflow-aggregator

@@ -17,8 +17,8 @@
 
 package com.pdasilem.jenkins.rest;
 
-import okhttp3.mockwebserver.MockWebServer;
-import okhttp3.mockwebserver.RecordedRequest;
+import mockwebserver3.MockWebServer;
+import mockwebserver3.RecordedRequest;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -66,7 +66,7 @@ public class BaseJenkinsMockTest extends BaseJenkinsTest {
         RecordedRequest request = server.takeRequest();
         assertThat(request.getMethod()).isEqualTo(method);
 
-        final String path = request.getPath();
+        final String path = request.getTarget();
         final String rawPath = path.contains("?") ? path.substring(0, path.indexOf('?')) : path;
         assertThat(rawPath).isEqualTo(expectedPath);
 
@@ -84,8 +84,8 @@ public class BaseJenkinsMockTest extends BaseJenkinsTest {
 
         RecordedRequest request = server.takeRequest();
         assertThat(request.getMethod()).isEqualTo(method);
-        assertThat(request.getPath()).isEqualTo(path);
-        assertThat(request.getUtf8Body()).isEqualTo(body);
+        assertThat(request.getTarget()).isEqualTo(path);
+        assertThat(request.getBody().utf8()).isEqualTo(body);
         return request;
     }
 
@@ -95,8 +95,8 @@ public class BaseJenkinsMockTest extends BaseJenkinsTest {
 
         RecordedRequest request = server.takeRequest();
         assertThat(request.getMethod()).isEqualTo(method);
-        assertThat(request.getPath()).isEqualTo(path);
-        assertThat(request.getUtf8Body()).isEqualTo(body);
+        assertThat(request.getTarget()).isEqualTo(path);
+        assertThat(request.getBody().utf8()).isEqualTo(body);
         return request;
     }
 
@@ -105,22 +105,22 @@ public class BaseJenkinsMockTest extends BaseJenkinsTest {
 
         RecordedRequest request = server.takeRequest();
         assertThat(request.getMethod()).isEqualTo(method);
-        assertThat(request.getPath()).isEqualTo(path);
-        assertThat(request.getUtf8Body()).isEqualTo(body);
+        assertThat(request.getTarget()).isEqualTo(path);
+        assertThat(request.getBody().utf8()).isEqualTo(body);
         return request;
     }
 
     protected RecordedRequest assertSentAcceptText(MockWebServer server, String method, String path) throws InterruptedException {
         RecordedRequest request = server.takeRequest();
         assertThat(request.getMethod()).isEqualTo(method);
-        assertThat(request.getPath()).isEqualTo(path);
+        assertThat(request.getTarget()).isEqualTo(path);
         return request;
     }
 
     protected RecordedRequest assertSentAccept(MockWebServer server, String method, String path, String acceptType) throws InterruptedException {
         RecordedRequest request = server.takeRequest();
         assertThat(request.getMethod()).isEqualTo(method);
-        assertThat(request.getPath()).isEqualTo(path);
+        assertThat(request.getTarget()).isEqualTo(path);
         return request;
     }
 }

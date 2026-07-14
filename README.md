@@ -1,6 +1,16 @@
 # jenkins-rest
 
-Java client for working with Jenkins REST API, built on `java.net.http.HttpClient` (JDK 21+).
+Java client for working with Jenkins REST API, built on `java.net.http.HttpClient` (JDK 25+).
+
+## Requirements
+
+| | |
+|---|---|
+| Runtime | JDK 25 or newer (the published bytecode targets 25) |
+| Build | JDK 25 and Gradle 9.1+ (the wrapper pins 9.6.1) |
+| Runtime dependencies | Gson only |
+
+If you are still on JDK 21, use the 2.2.0 release.
 
 ## Acknowledgment
 
@@ -15,6 +25,8 @@ Changes from the original version (2.0.0+):
 - Removed Guice, Guava, javax.ws.rs, javax.inject dependencies
 - Changed package namespace from `com.cdancy` to `com.pdasilem`
 - **Version 2.1.0**: Refactored error handling — API methods now throw exceptions instead of returning `null`
+- **Version 2.2.0**: Collapsed the exception hierarchy into a single `JenkinsApiException`
+- **Version 3.0.0**: Requires JDK 25 (bytecode target 25); built with Gradle 9; `UserApi.revoke()` now reports HTTP failures instead of always succeeding
 
 ## Setup
 
@@ -115,7 +127,7 @@ that you can use in your own code.
 
 ## Components
 
-- **java.net.http.HttpClient** (JDK 21) — HTTP layer
+- **java.net.http.HttpClient** (JDK 25) — HTTP layer
 - **Gson** — JSON serialization/deserialization
 - **Java Records** — immutable domain classes
 
@@ -144,11 +156,13 @@ If you wish to run integration tests against your own Jenkins server, the requir
   - an `admin` user (credentials used by the tests can be changed in the gradle.properties file) with `ADMIN` role (required as the tests install plugins)
   - [CSRF protection enabled](https://www.jenkins.io/doc/book/security/csrf-protection/). Not mandatory but recommended by the Jenkins documentation. The lib supports Jenkins instances with or without this protection.
 - Plugins
-  - [CloudBees Credentials](https://plugins.jenkins.io/cloudbees-credentials)
   - [CloudBees Folder](https://plugins.jenkins.io/cloudbees-folder) plugin installed
   - [OWASP Markup Formatter](https://plugins.jenkins.io/antisamy-markup-formatter) configured to use `Safe HTML`
   - [Configuration As Code](https://plugins.jenkins.io/configuration-as-code) plugin installed
   - [Pipeline](https://plugins.jenkins.io/workflow-aggregator) plugin installed
+  - [Badge](https://plugins.jenkins.io/badge) plugin installed (version 3.x, used by the build-action tests)
+
+These plugins require a Jenkins core of at least **2.541.3**; older cores will fail to load them.
 
 This project provides instructions to setup a [pre-configured Docker container](src/main/docker/README.md)
 
@@ -161,6 +175,46 @@ This project provides instructions to setup a [pre-configured Docker container](
 
 - the `integTest` gradle task sets various System Properties
 - if you don't want to use gradle as tests runner in your IDE, configure the tests with the same kind of System Properties
+
+## Releasing
+
+Releases go to Maven Central through the [Central Portal](https://central.sonatype.com) under the
+verified `io.github.pdasilem` namespace. The legacy OSSRH host (`oss.sonatype.org`) was shut down on
+June 30, 2025 and is no longer used.
+
+Central rejects unsigned artifacts, so a GPG key is required in both flows below. Its public half must
+be published to a keyserver (`gpg --keyserver keyserver.ubuntu.com --send-keys <KEY_ID>`), because the
+Portal validates the signature against it.
+
+### Automated (preferred)
+
+Pushing a `v*` tag runs [release.yaml](.github/workflows/release.yaml), which runs the full test suite,
+builds a signed bundle, uploads it to the Portal, and creates a GitHub release. The deployment is
+uploaded as `USER_MANAGED`, so it still waits for you to press **Publish** at
+[central.sonatype.com/publishing/deployments](https://central.sonatype.com/publishing/deployments).
+
+It needs these repository secrets:
+
+| Secret | Where it comes from |
+|---|---|
+| `GPG_PRIVATE_KEY` | `gpg --armor --export-secret-keys <KEY_ID>` |
+| `GPG_PASSPHRASE` | the passphrase of that key |
+| `CENTRAL_TOKEN_USERNAME` | Portal → Account → Generate User Token |
+| `CENTRAL_TOKEN_PASSWORD` | Portal → Account → Generate User Token |
+
+### Manual
+
+Build the bundle and upload it at Portal → Publish → Publish Component:
+
+	./gradlew bundleForCentral \
+	  -PsigningKey="$(gpg --armor --export-secret-keys <KEY_ID>)" \
+	  -PsigningPassword=<passphrase>
+
+The bundle lands in `build/distributions/jenkins-rest-<version>-bundle.zip`. No Portal token is needed
+for the web upload.
+
+Never put credentials in `gradle.properties` — it is tracked by git. Use `~/.gradle/gradle.properties`
+or the `ORG_GRADLE_PROJECT_*` environment variables.
 
 # Additional Resources
 

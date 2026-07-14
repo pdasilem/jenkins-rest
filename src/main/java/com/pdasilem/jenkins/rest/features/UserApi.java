@@ -23,6 +23,7 @@ import com.pdasilem.jenkins.rest.domain.common.RequestStatus;
 import com.pdasilem.jenkins.rest.domain.user.ApiToken;
 import com.pdasilem.jenkins.rest.domain.user.User;
 
+import java.net.http.HttpResponse;
 import java.util.List;
 import java.util.Map;
 
@@ -48,8 +49,13 @@ public class UserApi {
     public RequestStatus revoke(final String tokenUuid) {
         try {
             final String userId = client.auth().identity();
-            client.postFormWithResponse("/user/" + userId + "/descriptorByName/jenkins.security.ApiTokenProperty/revoke",
+            final HttpResponse<String> resp = client.postFormWithResponse(
+                    "/user/" + userId + "/descriptorByName/jenkins.security.ApiTokenProperty/revoke",
                     Map.of("tokenUuid", List.of(tokenUuid)));
+            if (resp.statusCode() >= 400) {
+                return RequestStatus.create(false, List.of(
+                        Error.create(null, "HTTP " + resp.statusCode(), "HttpResponseException")));
+            }
             return RequestStatus.create(true, null);
         } catch (Exception e) {
             return RequestStatus.create(false, List.of(Error.create(null, e.getMessage(), e.getClass().getCanonicalName())));

@@ -20,8 +20,8 @@ import com.pdasilem.jenkins.rest.BaseJenkinsMockTest;
 import com.pdasilem.jenkins.rest.JenkinsApi;
 import com.pdasilem.jenkins.rest.domain.common.RequestStatus;
 import com.pdasilem.jenkins.rest.domain.plugins.Plugins;
-import okhttp3.mockwebserver.MockResponse;
-import okhttp3.mockwebserver.MockWebServer;
+import mockwebserver3.MockResponse;
+import mockwebserver3.MockWebServer;
 import org.testng.annotations.Test;
 
 import java.util.HashMap;
@@ -40,7 +40,7 @@ public class PluginManagerApiMockTest extends BaseJenkinsMockTest {
 
     public void testGetPlugins() throws Exception {
         final MockWebServer server = mockWebServer();
-        server.enqueue(new MockResponse().setBody(payloadFromResource("/plugins.json")).setResponseCode(200));
+        server.enqueue(new MockResponse.Builder().body(payloadFromResource("/plugins.json")).code(200).build());
 
         final JenkinsApi jenkinsApi = api(server.url("/").url());
         final PluginManagerApi api = jenkinsApi.pluginManagerApi();
@@ -55,13 +55,13 @@ public class PluginManagerApiMockTest extends BaseJenkinsMockTest {
             assertSent(server, "GET", "/pluginManager/api/json", queryParams);
         } finally {
             jenkinsApi.close();
-            server.shutdown();
+            server.close();
         }
     }
 
     public void testGetPluginsOnAuthException() throws Exception {
         final MockWebServer server = mockWebServer();
-        server.enqueue(new MockResponse().setResponseCode(401));
+        server.enqueue(new MockResponse.Builder().code(401).build());
 
         final JenkinsApi jenkinsApi = api(server.url("/").url());
         final PluginManagerApi api = jenkinsApi.pluginManagerApi();
@@ -76,13 +76,13 @@ public class PluginManagerApiMockTest extends BaseJenkinsMockTest {
             assertSent(server, "GET", "/pluginManager/api/json", queryParams);
         } finally {
             jenkinsApi.close();
-            server.shutdown();
+            server.close();
         }
     }
 
     public void testInstallNecessaryPlugins() throws Exception {
         final MockWebServer server = mockWebServer();
-        server.enqueue(new MockResponse().setResponseCode(200));
+        server.enqueue(new MockResponse.Builder().code(200).build());
 
         final JenkinsApi jenkinsApi = api(server.url("/").url());
         final PluginManagerApi api = jenkinsApi.pluginManagerApi();
@@ -94,13 +94,13 @@ public class PluginManagerApiMockTest extends BaseJenkinsMockTest {
             assertSent(server, "POST", "/pluginManager/installNecessaryPlugins");
         } finally {
             jenkinsApi.close();
-            server.shutdown();
+            server.close();
         }
     }
 
     public void testInstallNecessaryPluginsOnAuthException() throws Exception {
         final MockWebServer server = mockWebServer();
-        server.enqueue(new MockResponse().setResponseCode(401));
+        server.enqueue(new MockResponse.Builder().code(401).build());
 
         final JenkinsApi jenkinsApi = api(server.url("/").url());
         final PluginManagerApi api = jenkinsApi.pluginManagerApi();
@@ -113,7 +113,7 @@ public class PluginManagerApiMockTest extends BaseJenkinsMockTest {
             assertSent(server, "POST", "/pluginManager/installNecessaryPlugins");
         } finally {
             jenkinsApi.close();
-            server.shutdown();
+            server.close();
         }
     }
 }

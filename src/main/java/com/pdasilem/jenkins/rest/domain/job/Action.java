@@ -24,7 +24,7 @@ import java.util.List;
 public record Action(List<Cause> causes,
                      List<Parameter> parameters,
                      String text,
-                     String iconPath,
+                     @SerializedName(value = "iconPath", alternate = {"icon"}) String iconPath,
                      @SerializedName("_class") String clazz) {
 
     public Action {

@@ -6,7 +6,6 @@ plugins {
 }
 
 apply from: "$rootDir/gradle/additional-artifacts.gradle"
-apply from: "$rootDir/gradle/dependencies.gradle"
 apply from: "$rootDir/gradle/publishing.gradle"
 apply from: "$rootDir/gradle/release.gradle"
 
@@ -15,18 +14,18 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.google.code.gson:gson:2.11.0'
+    implementation libs.gson
 
-    testImplementation 'org.assertj:assertj-core:3.26.3'
-    testImplementation 'ch.qos.logback:logback-core:1.5.17'
-    testImplementation 'ch.qos.logback:logback-classic:1.5.17'
-    testImplementation 'com.squareup.okhttp3:mockwebserver:4.12.0'
-    testImplementation 'org.testng:testng:7.11.0'
+    testImplementation libs.assertj.core
+    testImplementation libs.logback.core
+    testImplementation libs.logback.classic
+    testImplementation libs.mockwebserver3
+    testImplementation libs.testng
 }
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
+        languageVersion = JavaLanguageVersion.of(25)
     }
 }
 
@@ -43,9 +42,14 @@ jar {
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
+    options.release = 25
 }
 
-task mockTest(type: Test) {
+tasks.named('test') {
+    failOnNoDiscoveredTests = false
+}
+
+tasks.register('mockTest', Test) {
     group = "Verification"
     description = "Mock tests"
     testClassesDirs = sourceSets.test.output.classesDirs
@@ -59,9 +63,10 @@ task mockTest(type: Test) {
     }
 }
 
-task integTest(type: Test, dependsOn: mockTest) {
+tasks.register('integTest', Test) {
     group = "Verification"
     description = "Integration tests - Jenkins must be running. See the README."
+    dependsOn tasks.named('mockTest')
     testClassesDirs = sourceSets.test.output.classesDirs
     classpath = sourceSets.test.runtimeClasspath
     doFirst {
@@ -95,7 +100,7 @@ task integTest(type: Test, dependsOn: mockTest) {
 javadoc {
     source = sourceSets.main.allJava
     options.with {
-        links "https://docs.oracle.com/en/java/javase/21/docs/api"
+        links "https://docs.oracle.com/en/java/javase/25/docs/api"
         addStringOption('Xdoclint:none', '-quiet')
     }
 }

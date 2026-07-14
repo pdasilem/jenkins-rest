@@ -20,8 +20,8 @@ import com.pdasilem.jenkins.rest.BaseJenkinsMockTest;
 import com.pdasilem.jenkins.rest.JenkinsApi;
 import com.pdasilem.jenkins.rest.domain.common.RequestStatus;
 import com.pdasilem.jenkins.rest.domain.system.SystemInfo;
-import okhttp3.mockwebserver.MockResponse;
-import okhttp3.mockwebserver.MockWebServer;
+import mockwebserver3.MockResponse;
+import mockwebserver3.MockWebServer;
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.assertFalse;
@@ -38,11 +38,11 @@ public class SystemApiMockTest extends BaseJenkinsMockTest {
         MockWebServer server = mockWebServer();
 
         server.enqueue(
-            new MockResponse().setHeader("X-Hudson", "1.395").setHeader("X-Jenkins", "2.0")
+            new MockResponse.Builder().setHeader("X-Hudson", "1.395").setHeader("X-Jenkins", "2.0")
                 .setHeader("X-Jenkins-Session", "cc323b8d").setHeader("X-Hudson-CLI-Port", "50000")
                 .setHeader("X-Jenkins-CLI-Port", "50000").setHeader("X-Jenkins-CLI2-Port", "50000")
                 .setHeader("X-Instance-Identity", "fdsa").setHeader("X-SSH-Endpoint", "127.0.1.1:46126")
-                .setHeader("Server", "Jetty(winstone-2.9)").setResponseCode(200));
+                .setHeader("Server", "Jetty(winstone-2.9)").code(200).build());
         JenkinsApi jenkinsApi = api(server.url("/").url());
         SystemApi api = jenkinsApi.systemApi();
         try {
@@ -52,7 +52,7 @@ public class SystemApiMockTest extends BaseJenkinsMockTest {
             assertSent(server, "HEAD", "/");
         } finally {
             jenkinsApi.close();
-            server.shutdown();
+            server.close();
         }
     }
 
@@ -60,7 +60,7 @@ public class SystemApiMockTest extends BaseJenkinsMockTest {
         MockWebServer server = mockWebServer();
 
         server.enqueue(
-            new MockResponse().setBody("Not Authorized").setResponseCode(401));
+            new MockResponse.Builder().body("Not Authorized").code(401).build());
         JenkinsApi jenkinsApi = api(server.url("/").url());
         SystemApi api = jenkinsApi.systemApi();
         try {
@@ -70,14 +70,14 @@ public class SystemApiMockTest extends BaseJenkinsMockTest {
             assertSent(server, "HEAD", "/");
         } finally {
             jenkinsApi.close();
-            server.shutdown();
+            server.close();
         }
     }
 
     public void testQuietDown() throws Exception {
         MockWebServer server = mockWebServer();
 
-        server.enqueue(new MockResponse().setResponseCode(200));
+        server.enqueue(new MockResponse.Builder().code(200).build());
         JenkinsApi jenkinsApi = api(server.url("/").url());
         SystemApi api = jenkinsApi.systemApi();
         try {
@@ -87,14 +87,14 @@ public class SystemApiMockTest extends BaseJenkinsMockTest {
             assertSentAccept(server, "POST", "/quietDown", "text/html");
         } finally {
             jenkinsApi.close();
-            server.shutdown();
+            server.close();
         }
     }
 
     public void testQuietDownOnAuthException() throws Exception {
         MockWebServer server = mockWebServer();
 
-        server.enqueue(new MockResponse().setResponseCode(401));
+        server.enqueue(new MockResponse.Builder().code(401).build());
         JenkinsApi jenkinsApi = api(server.url("/").url());
         SystemApi api = jenkinsApi.systemApi();
         try {
@@ -104,14 +104,14 @@ public class SystemApiMockTest extends BaseJenkinsMockTest {
             assertSentAccept(server, "POST", "/quietDown", "text/html");
         } finally {
             jenkinsApi.close();
-            server.shutdown();
+            server.close();
         }
     }
 
     public void testCancelQuietDown() throws Exception {
         MockWebServer server = mockWebServer();
 
-        server.enqueue(new MockResponse().setResponseCode(200));
+        server.enqueue(new MockResponse.Builder().code(200).build());
         JenkinsApi jenkinsApi = api(server.url("/").url());
         SystemApi api = jenkinsApi.systemApi();
         try {
@@ -121,14 +121,14 @@ public class SystemApiMockTest extends BaseJenkinsMockTest {
             assertSentAccept(server, "POST", "/cancelQuietDown", "text/html");
         } finally {
             jenkinsApi.close();
-            server.shutdown();
+            server.close();
         }
     }
 
     public void testCancelQuietDownOnAuthException() throws Exception {
         MockWebServer server = mockWebServer();
 
-        server.enqueue(new MockResponse().setResponseCode(401));
+        server.enqueue(new MockResponse.Builder().code(401).build());
         JenkinsApi jenkinsApi = api(server.url("/").url());
         SystemApi api = jenkinsApi.systemApi();
         try {
@@ -138,7 +138,7 @@ public class SystemApiMockTest extends BaseJenkinsMockTest {
             assertSentAccept(server, "POST", "/cancelQuietDown", "text/html");
         } finally {
             jenkinsApi.close();
-            server.shutdown();
+            server.close();
         }
     }
 }

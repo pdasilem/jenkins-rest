@@ -3,7 +3,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'org.eclipse.jgit:org.eclipse.jgit:6.0.0.202111291000-r'
+        classpath 'org.eclipse.jgit:org.eclipse.jgit:7.7.0.202606012155-r'
     }
 }
 
@@ -11,21 +11,20 @@ import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.api.DeleteTagCommand
 import org.eclipse.jgit.api.TagCommand
 import org.eclipse.jgit.api.PushCommand
-import org.eclipse.jgit.lib.Repository
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
 
-File repoDir = new File("${projectDir}")
-FileRepositoryBuilder builder = new FileRepositoryBuilder()
-Repository repo = builder.findGitDir(repoDir).build()
-Git git = new Git(repo)
+def openGit = {
+    new Git(new FileRepositoryBuilder().findGitDir(project.projectDir).build())
+}
 
-task createTag {
+tasks.register('createTag') {
     description = 'Creates repository tag with current project version.'
     ext.tagName = "v${project.version}"
 
     doLast {
         logger.quiet "Creating tag '$tagName'."
+        def git = openGit()
 
         // Remove potentially existing tag
         DeleteTagCommand delTag = git.tagDelete()
@@ -37,25 +36,28 @@ task createTag {
     }
 }
 
-task pushTag {
+tasks.register('pushTag') {
     description = 'Pushes tag to remote repository.'
-    dependsOn createTag
+    dependsOn tasks.named('createTag')
 
     doLast {
-        logger.quiet "Pushing tag '$createTag.tagName' to remote."
+        def tagName = tasks.named('createTag').get().tagName
+        logger.quiet "Pushing tag '$tagName' to remote."
+        def git = openGit()
+
         PushCommand push = git.push()
-        push.add(createTag.tagName)
+        push.add(tagName)
         push.setCredentialsProvider(new UsernamePasswordCredentialsProvider(project.githubUsername, project.githubPassword))
         push.call()
     }
 }
 
-task tag {
-    dependsOn pushTag
+tasks.register('tag') {
+    dependsOn tasks.named('pushTag')
     mustRunAfter "publishToSonatype", "closeAndReleaseSonatypeStagingRepository"
 }
 
-task release {
-    description = 'Publishes artifacts to Bintray and tags repository with current project version.'
-    dependsOn assemble, "publishToSonatype", "closeAndReleaseSonatypeStagingRepository", tag
+tasks.register('release') {
+    description = 'Publishes artifacts to Maven Central and tags repository with current project version.'
+    dependsOn tasks.named('assemble'), "publishToSonatype", "closeAndReleaseSonatypeStagingRepository", tasks.named('tag')
 }
