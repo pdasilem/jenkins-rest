@@ -89,5 +89,4 @@ jobs:
         run: |
           gh release create "$GITHUB_REF_NAME" \
             --title "$GITHUB_REF_NAME" \
-            --notes "See RELEASE_NOTES.md for the full changelog." \
-            build/distributions/*.zip
+            --notes "See RELEASE_NOTES.md for the full changelog."
